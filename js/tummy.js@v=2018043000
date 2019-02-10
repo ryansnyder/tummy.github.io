@@ -1,0 +1,498 @@
+(function ($) {
+  $(document).ready(function () {
+	
+    // Upon form submission, switch out the submit button so that the user knows that something is happening
+    $('#button_add').on('click', function () { changeButtonUponSubmit('button_add') });
+    $('#button_edit').on('click', function () { changeButtonUponSubmit('button_edit') });
+    $('#button_delete').on('click', function () { changeButtonUponSubmit('button_delete') });
+    $('#button_get').on('click', function () { changeButtonUponSubmit('button_get') });
+    $('#button_submit').on('click', function () { changeButtonUponSubmit('button_submit') });
+  	
+	// Load images only when the user has scrolled to that part of the page
+	$("img").unveil();
+  });
+})(jQuery);
+
+// Expand / contract the photo on the meal view page.
+function toggleMealPhoto() {
+  if ($( "#meal-photo" ).hasClass( "meal-photo-landscape" )) {
+    $("#meal-photo").removeClass("meal-photo-landscape");      
+    $("#meal-photo").addClass("meal-photo-landscape-full", 50); // show in .05 seconds
+  } else {
+    $("#meal-photo").removeClass("meal-photo-landscape-full");
+    $("#meal-photo").addClass("meal-photo-landscape", 50); // show in .05 seconds
+  }
+}
+
+// Upon form submission, switch out the submit button so that the user knows that something is happening
+function changeButtonUponSubmit(elementId) {
+  var el = '#' + elementId;
+  $(el).button('loading'); 
+  $(el).removeClass( "btn-primary" );
+  $(el).addClass( "btn-submitted" );	
+}
+
+// Show the next meal item upon clicking the next line
+function showMealItem(lineNumber) {
+  var num = parseInt(document.getElementById('current_num').value);
+
+  // if the line number that the user's typing in equals the number of the last line shown, unhide the next line
+  if (lineNumber == num) {
+  	var showId = num.toString(showId);
+  	var showId = num + 1;
+  	
+  	// show new field
+  	var showElement = "#meal_item_row_" + showId;
+  	$(showElement).show("fast");
+
+  	// increase value for next element
+  	var new_num = num + 1;
+  	document.getElementById('current_num').value = new_num;
+  }
+}
+
+// Show the appropriate measurement fields for the given user measurement type.
+function showMeasurementFields(userMeasurementType) { 
+
+  if (userMeasurementType === undefined || userMeasurementType < 1) {
+  	var userMeasurementType = $('#user_measurement_type').val();
+  }
+
+  $('.form_measurement').hide("fast"); 
+  $('.form_measurement_blood_glucose').hide();
+  $('.form_measurement_pulse').hide();
+  $('.form_measurement_temperature').hide();
+  $('.form_measurement_weight').hide();
+  $('.form_measurement_note').show();	
+  if (userMeasurementType == 1) { // temp 
+	$('.form_measurement_quantity_desc').hide("fast");		
+	$('.form_measurement_quantity').show("fast");
+	$('.form_measurement_temperature').show("fast");
+	$('#quantity').focus();
+  } else if (userMeasurementType == 2) { // poo
+	$('.form_measurement_poo').show("fast");	
+	$('#poo_consistency').focus();
+  } else if (userMeasurementType == 3) { // height
+	$('.form_measurement_note').hide("fast");
+	$('.form_measurement_height').show("fast");	
+  } else if (userMeasurementType == 4) { // pulse
+	$('.form_measurement_quantity_desc').hide("fast");		
+	$('.form_measurement_quantity').show("fast");
+	$('.form_measurement_pulse').show("fast");			
+	$('#quantity').focus();
+  } else if (userMeasurementType == 5) { // sleep
+	$('.form_measurement_sleep').show("fast");		
+	$('#sleep_start_time_hours').focus();	
+  } else if (userMeasurementType == 6) { // weight
+	$('.form_measurement_quantity_desc').hide("fast");		
+	$('.form_measurement_quantity').show("fast");	
+	$('.form_measurement_weight').show("fast");	
+	$('#quantity').focus();
+  } else if (userMeasurementType == 8) { // urine
+	$('.form_measurement_urine').show("fast");	
+	$('#urine_amount').focus();
+  } else if (userMeasurementType == 9) { // blood glucose
+	$('.form_measurement_quantity').show("fast");
+	$('.form_measurement_blood_glucose').show("fast");					
+	$('#quantity').focus();
+  } else if (userMeasurementType == 10) { // body fat
+	$('.form_measurement_quantity').show("fast");
+	$('.form_measurement_body_fat').show("fast");					
+	$('#quantity').focus();
+  }
+
+  // Change date text accordingly
+  changeMeasurementDateText(userMeasurementType);
+}
+
+// Change the text on the add / edit page to be symptom type specific
+function changeMeasurementDateText(userMeasurementType) {
+	if (userMeasurementType === undefined || userMeasurementType < 1) {
+    	var userMeasurementType = $('#user_measurement_type').val();
+    }
+	var userMeasurementType = parseInt(userMeasurementType);
+	if (userMeasurementType == 7) {
+		$('#date_text').html('started');
+	} else {
+		$('#date_text').html('on');
+	}	
+}
+
+// Change the text on the add / edit page to be symptom type specific
+function changeSeverityText(symptomType) {
+	if (symptomType === undefined || symptomType < 1) {
+    	var symptomType = $('#symptom_type').val();
+    }
+
+	var symptomType = parseInt(symptomType);
+	var skinHair = new Array(8, 9);
+	if (skinHair.indexOf(symptomType) != -1) {  
+		$('#severity_text').html('was');
+	} else {
+		$('#severity_text').html('felt');
+	}
+	
+}
+
+// Show the appropriate configuration fields for the given measurement units (m = metric, u = us)
+function showConfigurationFields(measurementUnits) { 
+  if (measurementUnits == 'm') { // metric
+	$('.measurement-us').hide("fast"); 
+    $('.measurement-metric').show("fast"); 	
+	$('#height-meters').focus();	
+  }
+  else if (measurementUnits == 'u') { // us
+    $('.measurement-metric').hide("fast"); 
+    $('.measurement-us').show("fast"); 
+	$('#height-inches').focus();	
+  }
+}
+
+// Show or hide the add meal / measurement / symptom bars
+function showHideAddBars() {
+  var bars = document.getElementById('bars-add');
+  if (!bars.style.display || bars.style.display == "none") {
+	$("#bars-add").show("fast");	
+	$("#bars-profile").hide("fast");			
+  } else {
+	$("#bars-add").hide("fast");		
+	$("#bars-profile").hide("fast");			
+  }
+}
+
+// Show or hide the targets on the timeline
+function showHideTargets() {
+  var targets = document.getElementsByClassName("show-targets")[0];
+  if (!targets.style.display || targets.style.display == "none") {
+	$(".show-targets").show("fast");	
+	$(".hide-targets").hide("fast");
+	$("#show_hide_stats").text("Hide");
+	$(".pill-day-stats").addClass("pill-day-stats-closed");	
+	$(".pill-day-stats").removeClass("pill-day-stats-open");		
+  } else {
+	$(".show-targets").hide("fast");		
+	$(".hide-targets").show("fast");		
+	$("#show_hide_stats").text("Show");
+	$(".pill-day-stats").addClass("pill-day-stats-open");			
+	$(".pill-day-stats").removeClass("pill-day-stats-closed");	
+  }
+}
+
+// Show or hide the profile bars 
+function showHideProfileBars() {
+  var bars = document.getElementById('bars-profile');
+  if (!bars.style.display || bars.style.display == "none") {
+	$("#bars-profile").show("fast");	
+	$("#bars-add").hide("fast");
+  } else {
+	$("#bars-profile").hide("fast");		
+	$("#bars-add").hide("fast");		
+  }
+}
+
+// Click anywhere in the app and it will close the nav add / profile bars if they're popped up
+$('html').click(function(e) {                    
+  if (
+	  !$(e.target).is("#bars-profile") && 
+	  !$(e.target).is("#bars-add") &&
+	  !$(e.target).is("#button-bar-profile") &&
+      !$(e.target).hasClass("avatar-header") &&
+      !$(e.target).hasClass("avatar") &&
+      !$(e.target).hasClass("nav-right-icon") &&
+      !$(e.target).hasClass("fa-plus-circle") &&
+      !$(e.target).hasClass("client-name")
+  ) {
+    $("#bars-add").hide("fast");
+    $("#bars-profile").hide("fast");
+  }
+});
+
+// Press escape anywhere in the app and it will close the nav add / profile bars if they're popped up
+$(document).on('keyup',function(evt) {
+  $("#bars-add").hide("fast");
+  $("#bars-profile").hide("fast");
+});
+
+// Hide progress circle in /configure
+function hideProgressCircle() {
+  $("#gender_circle").hide("fast");
+}
+
+// Show progress circle in /configure
+function showProgressCircle() {
+  $("#gender_circle").show("fast");
+}
+
+// After an entry has been added, make that element bounce in the timeline as a visual cue
+function bounceElement(elementId) {	
+  $('#'+elementId).addClass('animated bounceInRight');
+  setTimeout(function() {
+    $("#"+elementId).hide('slow');
+  }, (3 * 1000));
+}
+
+// Determine whether or not a username is available
+function usernameAvailable(){
+  var username = document.getElementById('username').value;
+  $.ajax({
+  	type: "POST",
+  	url: "auth/register_username_available",
+  	data: "username="+username+"&ajax=1",
+  	dataType: "json",
+  	success: function(msg){
+  	  $("#username-group").removeClass("has-error");
+  	  $("#username-group").removeClass("has-success");
+  	  $("#usernameStatusAvailable").hide();
+  	  $("#usernameStatusUnavailable").hide();
+  	  if (msg.status == 'error') {
+  	  	$("#username-group").addClass('has-error');			
+  	  	$("#username-group").addClass('has-feedback');	
+    	$("#usernameStatusAvailable").hide();
+    	$("#usernameStatusUnavailable").show();
+  	  }
+  	  if (msg.status == 'success') {
+  	  	$("#username-group").addClass('has-success');			
+  	  	$("#username-group").addClass('has-feedback');	
+    	$("#usernameStatusAvailable").show();
+    	$("#usernameStatusUnavailable").hide();
+  	  }
+  	  $("#usernameAvailable").show('fast');
+  	  $("#usernameAvailable").addClass(msg.status);
+  	  $("#usernameAvailable").html(msg.message);
+  	}
+  });
+}
+
+// Display that a file has been selected for upload, e.g. Add photo for a meal
+$(document).on('change', ':file', function() {
+  var input = $(this),
+    numFiles = input.get(0).files ? input.get(0).files.length : 1,
+    label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+  input.trigger('fileselect', [numFiles, label]);
+  $("#inputAddPhoto").hide();
+  $("#inputAddPhotoText").show();	
+});
+
+// Determine whether or not a page is being loaded from within the Tummy iOS app.
+function accessedViaIOSApp() {
+  if (navigator.platform.substr(0,2) === 'iP'){
+    // This is an iOS device (iPhone, iPod or iPad)
+    var lte9 = /constructor/i.test(window.HTMLElement);
+    var nav = window.navigator, ua = nav.userAgent, idb = !!window.indexedDB;
+
+    // This is Safari - (WKWebView/Nitro since 6+)
+    if (ua.indexOf('Safari') !== -1 && ua.indexOf('Version') !== -1 && !nav.standalone){ 
+      return false;
+    } 
+
+    // This is UIWebView
+    else if ((!idb && lte9) || !window.statusbar.visible) {
+      return false;
+    } 
+
+    // This is WKWebView
+    else if ((window.webkit && window.webkit.messageHandlers) || !lte9 || idb){
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Used to set a delay within functions.
+ */
+var delay = (function(){
+  var timer = 0;
+  return function(callback, ms){
+    clearTimeout (timer);
+    timer = setTimeout(callback, ms);
+  };
+})();
+
+// mailchimp newsletter submit 1
+$(window).load(function() {
+  $('#newsletter-form').ajaxChimp({
+      url: '//bummytummy.us9.list-manage.com/subscribe/post?u=76be613b66b5ca8ef987e666a&amp;id=a5a0ba685f'
+  }); 
+});
+
+// mailchimp newsletter submit 2
+(function ($) {
+    'use strict';
+    $.ajaxChimp = {
+        responses: {
+            'Please check your email.'                                             : 0,
+            'Please enter a value'                                                              : 1,
+            'An email address must contain a single @'                                          : 2,
+            'The domain portion of the email address is invalid (the portion after the @: )'    : 3,
+            'The username portion of the email address is invalid (the portion before the @: )' : 4,
+            'This email address looks fake or invalid. Please enter a real email address'       : 5
+        },
+        translations: {
+            'en': null
+        },
+        init: function (selector, options) {
+            $(selector).ajaxChimp(options);
+        }
+
+    };
+
+    $.fn.ajaxChimp = function (options) {
+        $(this).each(function(i, elem) {
+            var form = $(elem);
+            var email = form.find('input[type=email]');
+            var alert_message = $('#newsletter-alert-message');
+
+            var settings = $.extend({
+                'url': form.attr('action'),
+                'language': 'en'
+            }, options);
+
+            var url = settings.url.replace('/post?', '/post-json?').concat('&c=?');
+
+            form.attr('novalidate', 'true');
+            email.attr('name', 'EMAIL');
+
+            form.submit(function () {
+                function successCallback(resp) {
+                    if (resp.result === 'success') {
+                        msg = 'Yesss! Check your email, and click the link in the confirmation email to receive tasty updates in your inbox.';
+	                    $('#newsletter-alert').addClass('alert-success');
+	                    $('#newsletter-alert').removeClass('alert-danger');
+						$('#newsletter-alert').show();
+						$('#newsletter-h3').hide();
+						$('#newsletter-p').hide();						
+						$('#newsletter-email').hide();
+						$('#newsletter-email-submit').hide();
+						$('#newsletter-description').hide();
+                    } else {
+	                    $('#newsletter-email').addClass('alert-danger');
+	                    $('#newsletter-alert').addClass('alert-danger');
+						$('#newsletter-alert').show();
+						$('#newsletter-p').hide();						
+                        var index = -1;
+                        var msg;
+                        try {
+                            var parts = resp.msg.split(' - ', 2);
+                            if (parts[1] === undefined) {
+                                msg = resp.msg;
+                            } else {
+                                var i = parseInt(parts[0], 10);
+                                if (i.toString() === parts[0]) {
+                                    index = parts[0];
+                                    msg = parts[1];
+                                } else {
+                                    index = -1;
+                                    msg = resp.msg;
+                                }
+                            }
+                        }
+                        catch (e) {
+                            index = -1;
+                            msg = resp.msg;
+                        }
+                    }
+
+                    // Translate and display message
+                    if (
+                        settings.language !== 'en' 
+                        && $.ajaxChimp.responses[msg]
+                        && $.ajaxChimp.translations
+                        && $.ajaxChimp.translations[settings.language]
+                        && $.ajaxChimp.translations[settings.language][$.ajaxChimp.responses[msg]]
+                    ) {
+                        msg = $.ajaxChimp.translations[settings.language][$.ajaxChimp.responses[msg]];
+                    }
+                    alert_message.html(msg);
+
+                    alert_message.show(2000);
+                    if (settings.callback) {
+                        settings.callback(resp);
+                    }
+                }
+
+                var data = {};
+                var dataArray = form.serializeArray();
+                $.each(dataArray, function (index, item) {
+                    data[item.name] = item.value;
+                });
+
+                $.ajax({
+                    url: url,
+                    data: data,
+                    success: successCallback,
+                    dataType: 'jsonp',
+                    error: function (resp, text) {
+                        console.log('mailchimp ajax submit error: ' + text);
+                    }
+                });
+
+                // Translate and display submit message
+                var submitMsg = 'Submitting...';
+                if( 
+                    settings.language !== 'en'
+                    && $.ajaxChimp.translations
+                    && $.ajaxChimp.translations[settings.language]
+                    && $.ajaxChimp.translations[settings.language]['submit']
+                ) {
+                    submitMsg = $.ajaxChimp.translations[settings.language]['submit'];
+                }
+                alert_message.html(submitMsg).show(2000);
+
+                return false;
+            });
+        });
+        return this;
+    };
+})(jQuery);
+
+
+/*
+ jQuery Unveil - Luís Almeida - http://luis-almeida.github.com/unveil
+*/
+;(function($) {
+
+  $.fn.unveil = function(threshold, callback) {
+
+    var $w = $(window),
+        th = threshold || 0,
+        retina = window.devicePixelRatio > 1,
+        attrib = retina? "data-src-retina" : "data-src",
+        images = this,
+        loaded;
+
+    this.one("unveil", function() {
+      var source = this.getAttribute(attrib);
+      source = source || this.getAttribute("data-src");
+      if (source) {
+        this.setAttribute("src", source);
+        if (typeof callback === "function") callback.call(this);
+      }
+    });
+
+    function unveil() {
+      var inview = images.filter(function() {
+        var $e = $(this);
+        if ($e.is(":hidden")) return;
+
+        var wt = $w.scrollTop(),
+            wb = wt + $w.height(),
+            et = $e.offset().top,
+            eb = et + $e.height();
+
+        return eb >= wt - th && et <= wb + th;
+      });
+
+      loaded = inview.trigger("unveil");
+      images = images.not(loaded);
+    }
+
+    $w.on("scroll.unveil resize.unveil lookup.unveil", unveil);
+
+    unveil();
+
+    return this;
+
+  };
+
+})(window.jQuery || window.Zepto);
